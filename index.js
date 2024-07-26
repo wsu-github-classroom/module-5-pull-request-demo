@@ -10,7 +10,9 @@ const client = new Client({
     port: 5432,
 });
 
-client.connect();
+client.connect()
+    .then(() => console.log('Connected to PostgreSQL'))
+    .catch(err => console.error('Connection error', err.stack));
 
 export async function saveCartItem(userId, productId, quantity) {
     const query = `
@@ -26,5 +28,12 @@ export async function saveCartItem(userId, productId, quantity) {
         return res.rows[0];
     } catch (err) {
         console.error('Error saving cart item:', err.stack);
+        throw err; // Re-throw the error after logging it
     }
 }
+
+process.on('exit', () => {
+    client.end()
+        .then(() => console.log('Disconnected from PostgreSQL'))
+        .catch(err => console.error('Disconnection error', err.stack));
+});
